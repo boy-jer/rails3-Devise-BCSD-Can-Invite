@@ -1,7 +1,7 @@
 class ApplicationController < ActionController::Base
   include UrlHelper
   protect_from_forgery
-  helper_method :current_account, :check_my_account, :root_domain, :can_sign_up?
+  helper_method :current_account, :check_account_id, :root_domain, :can_sign_up?
   before_filter :current_account
   before_filter :set_mailer_url_options
 
