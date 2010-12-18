@@ -26,17 +26,20 @@
 					<%= link_to 'Site Home', root_path %>
 				<% end%>
 			
+				<% if can? :invite, User %>
+			    | <%= link_to "Invite User", new_user_invitation_path %> 
+				<% end %>
+				
 				<% if can? :manage, User %>
-			    | <%= link_to "Invite User", new_user_invitation_path %> |
-			    <%= link_to "Members", members_path %>
+				
+			    | <%= link_to "Members", members_path %>
 			
 			  <% end %>
 			  
 			</div>
 		</div>	
 		<div id="content">
-		 <div class="notice" style="color: green"><%= notice %></div>
-		 <div class="alert" style="color: red"><%= alert %></div>
+			<%= flash_messages%>
 			<%= yield %>
 		</div>
 		<div id="footer">

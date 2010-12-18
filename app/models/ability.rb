@@ -4,6 +4,13 @@ class Ability
   def initialize(user)
     user ||= User.new  
     
-    can :manage, :all if user.roles.nil? ? false : user.roles.include?("admin")
+    if !user.roles.nil?
+      if user.roles.include?("site_admin")
+        can :manage, :all
+      elsif
+        user.roles.include?("inviter")
+        can :invite, User
+      end
+    end
   end
 end

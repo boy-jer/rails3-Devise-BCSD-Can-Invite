@@ -1,10 +1,16 @@
 class MembersController < ApplicationController
-  # GET /members
-  # GET /members.xml
+  #under normal conditions, use before_filter :authenticate_user!, but this is a demo so it has been replace
+  #before_filter :authenticate_user!
+  
+  # :require_user does not redirect to the sign-in page, but just displays a message - demo purposes
   before_filter :require_user
   before_filter :new
   load_and_authorize_resource
-  before_filter :test
+  before_filter :check_account
+
+
+  # GET /members
+  # GET /members.xml
   def index
     @members = Member.where(:account_id => current_user.account_id)
 
@@ -68,9 +74,9 @@ class MembersController < ApplicationController
     end
   end
   
-  def test
+  def check_account
     if @member
-      check_my_account(@member.account.name)
+      check_account_id(@member.account_id)
     end
   end
 end

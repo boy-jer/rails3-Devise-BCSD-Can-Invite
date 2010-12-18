@@ -12,15 +12,50 @@ This got its start with "fortuity/Rails3-Subdomain-Devise":http://github.com/for
 
 The initial basecamp like version was a fork of the above. "salex/Rails3-Subdomain-Devise":http://github.com/salex/rails3-subdomain-devise/.
 
-While that version works, there were some business rules I wanted to implement that made it more like basecamp. To implement those rules, CanCan and Devise Invitable are used. Code was also stollen from links on the Devise wiki to implement several features.
+While that version works, there were some business rules I wanted to implement that made it more like basecamp. To implement those rules, CanCan and Devise Invitable are used. Code was also stollen from links on the Devise wiki to implement several features, such as creating a login name.
+
+h3. Changes
+
+2010-12-18 I've received a few comments and suggestion. Again my goal was to use this on a proposed project. Since then
+I have used devise on a few other projects and have learned a little. I've also found some errors and did a little refactoring.
+
+One major change is that my rules stated that sign-in was only valid from the domain root page. Once an account was created,
+new users would have to be invited - more or less like basecamp. I added a configuration to the application.rb file
+
+<pre>
+	config.allow_account_sign_up = false
+</pre>
+
+If you set that to true, code has been modified to allow sign-up within a subdomain. That make it kind of like a google groups site, but using a subdomain.
+
+* modified:   Gemfile - file not really changed, but bundle update to 3.0.3 and devise 1.5
+* modified:   app/controllers/application_controller.rb
+** Some refactoring and name changes. Use cancan to control who can invite. Added helper can_sign_up? to control sign_up links
+* modified:   app/controllers/members_controller.rb
+** Some comments on why I had a helper require_user that is really the same as authenticate_user! 
+* modified:   app/helpers/application_helper.rb
+** added a flash helper
+* modified:   app/models/ability.rb
+** Control who can invite
+* modified:   app/models/account.rb
+** Added constant that can be called by user validations in the sign_up routines
+* modified:   app/models/user.rb
+** Validations modifed to allow sign_up at subdomain level. The next few file also refer to the sign_up change.
+* modified:   app/views/devise/menu/_registration_items.html.erb
+* modified:   app/views/devise/registrations/new.html.erb
+* modified:   app/views/layouts/application.html.erb
+* modified:   config/application.rb
+* modified:   db/seeds.rb
+** user3 and user4 would fail because account already exited. Change to save(false) scheme
+
 
 h3. The rules
 
-* You can only register or sign-up at the root domain.
-** The application will generate an alert if sign-in is attempted from a subdomain
+* <del>You can only register or sign-up at the root domain.</del> Configurable
+** <del>The application will generate an alert if sign-in is attempted from a subdomain</del> Configurable
 ** Sign-in requires a subdomain or account name. It must be unique and non blank.
 ** If the account name is unique, the account is created and the new user becomes the site admin
-* New users must be invited by the site admin to register for that subdomain
+* <del>New users must be invited by the site admin to register for that subdomain</del> Configurable
 * Login can be either by eMail and login, which is the email name if unique.
 * Login is unique across all subdomains
 * A user who tries to login to another subdomain will be rejected

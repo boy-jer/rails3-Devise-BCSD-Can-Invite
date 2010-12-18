@@ -1,5 +1,5 @@
 <% 
-if !root_domain
+if !can_sign_up?
   flash[:alert] = "Sign-up not permitted from a subdomain - quit mucking with the url"
 else%>
 <h2>Sign up</h2>
@@ -9,6 +9,8 @@ else%>
 
     <% if current_account %>
       <%= f.hidden_field :account_name, :value => current_account.name %>
+      <%= f.hidden_field :account_id, :value => current_account.id %>
+      
     <% else%>
       <p><%= f.label :account %>
       <br /><%= f.text_field :account_name%></p>

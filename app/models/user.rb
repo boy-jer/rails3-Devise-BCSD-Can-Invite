@@ -25,6 +25,11 @@ class User < ActiveRecord::Base
     self.where(:login => conditions[:email]).first || self.where(:email => conditions[:email]).first
   end
   
+  def role?(role)
+      return self.roles.nil? ? false : self.roles.include?(role.to_s)
+  end
+  
+  
   private
 
   def create_account
@@ -38,7 +43,7 @@ class User < ActiveRecord::Base
     if acct.nil? 
       self.account = Account.create!(:name => self.account_name)
     else
-      self.account_name = ""
+      self.account_name = "" if !Account::CAN_SIGN_UP
     end
   end
 
@@ -62,6 +67,7 @@ class User < ActiveRecord::Base
       self.login = self.email
     end	       
   end
+  
   
 end
 

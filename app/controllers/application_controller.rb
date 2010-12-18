@@ -1,16 +1,20 @@
 class ApplicationController < ActionController::Base
   include UrlHelper
   protect_from_forgery
-  helper_method :current_account, :check_my_account, :root_domain
+  helper_method :current_account, :check_my_account, :root_domain, :can_sign_up?
   before_filter :current_account
   before_filter :set_mailer_url_options
 
+  def can_sign_up?
+    Account::CAN_SIGN_UP
+  end
+  
   def root_domain
     result = (request.subdomains.first.present? && request.subdomains.first != "www") ? false : true
   end
 
   def current_account
-      if request.subdomains.first.present? && request.subdomains.first != "www"
+      if !root_domain
         current_account = Account.find_by_name(request.subdomains.first)
         if current_account.nil?
           redirect_to root_url(:account => false, :alert => "Unknown Account/subdomain")
@@ -22,24 +26,36 @@ class ApplicationController < ActionController::Base
       return current_account
   end      
   
-  def check_my_account(account)
-    if account != current_account.name
+  def check_account_id(account_id)
+    #call this from any controller to check if resourse account_id matches the subdomain account id
+    if account_id != current_account.id
       redirect_to "/opps" , :alert => "Sorry, resource is not part of your account"
     end
   end
+  
   def require_user
-    unless current_user
-      flash[:notice] = "You must be logged in to access this page"
-      redirect_to root_url
+    # this is nothing more than authenticate_user! without a sign-in message
+    unless user_signed_in?
+      redirect_to root_url, :alert => "You must be logged in to access that page - #{params[:controller]}"
       return false
     end
   end
   
-    rescue_from CanCan::AccessDenied do |exception|
-      flash[:alert] = exception.message
-      redirect_to "/opps" 
-    end
+  rescue_from CanCan::AccessDenied do |exception|
+    flash[:alert] = exception.message
+    redirect_to "/opps" 
+  end
+  
+  protected
 
+  def authenticate_inviter!
+    # use cancan to see if user can invite
+    if can? :invite, User
+      super
+    else 
+      redirect_to "/opps",  :alert => "Unauthorized action"
+    end
+  end
 
   def after_sign_in_path_for(resource_or_scope)
     scope = Devise::Mapping.find_scope!(resource_or_scope)

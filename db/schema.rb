@@ -38,8 +38,11 @@ ActiveRecord::Schema.define(:version => 20101027200254) do
     t.datetime "updated_at"
     t.integer  "account_id"
     t.string   "loginable_token"
-    t.string   "invitation_token",     :limit => 20
+    t.string   "invitation_token",     :limit => 60
     t.datetime "invitation_sent_at"
+    t.string   "confirmation_token"
+    t.datetime "confirmed_at"
+    t.datetime "confirmation_sent_at"
     t.string   "login"
     t.string   "roles"
   end

@@ -52,3 +52,9 @@ ul.hmenu li {
 .index-list tr.alt { background: #f8f8f8; }
 .index-list tr.list-header { background: #cde; padding: 2px; border:solid 1px #85ACC9; border-bottom: dotted 1px #85ACC9; }
 .index-list th {font-weight: bold; border: solid 1px #036;padding:1px 2px;border-bottom:none; background: #e0e0e0;}
+
+.message p{font-size:1.2em;}
+div.alert, div.error {color:red;border:solid red 1px;background:#fff;}
+div.notice {color:green;}
+div.warning {color:orange;}
+
