@@ -3,12 +3,16 @@ DeviseBCSDCanInvite::Application.routes.draw do
 
   resources :roles
 
-  devise_for :users
+  devise_for :users do
+    get "sign_in", :to => "devise/sessions#new"
+  end
+
   resources :users, :only => [:index, :show]   do
     member do
       get :valid
     end
   end
+  
   resources :accounts, :only => [:index, :show]
   constraints(AccountRoute) do
     match '/' => 'sites#index'

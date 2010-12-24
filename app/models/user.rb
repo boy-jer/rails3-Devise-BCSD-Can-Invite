@@ -12,7 +12,7 @@ class User < ActiveRecord::Base
   after_create :update_account_owner
   before_create :create_login
   
-  def self.valid?(params)
+  def self.valid_token?(params)
     token_user = self.where(:loginable_token => params[:id]).first
     if token_user
       token_user.loginable_token = nil

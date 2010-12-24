@@ -16,6 +16,9 @@ While that version works, there were some business rules I wanted to implement t
 
 h3. Changes
 
+2010-12-23 Gee, implementing new features broke some basics! That has never happened before has it? I have to learn how to write tests. Adding the ability to sign_up to a subdomain broke basic sign_up from the root domain. There was also an issue that if you used authenticate_user! instead of require_user and modified the url to a page that required login, and you used a user and password from another domain, it would log you in to the wrong subdomain! I've never liked stored_location_for or other forms of trying to store a redirect location in the session or someplace, just too may ways of screwing it up. But I added a configuration item that authenticate_user! will act as super (redirect to sign_in page) or redirect to the subdomain home page with alert. Pick your poison. Just hope I didn't screw that up. Think I fixed the basic sign_up, but just wanted to get something out there that worked better than what was out there.
+
+
 2010-12-18 I've received a few comments and suggestion. Again my goal was to use this on a proposed project. Since then
 I have used devise on a few other projects and have learned a little. I've also found some errors and did a little refactoring.
 
@@ -28,7 +31,7 @@ new users would have to be invited - more or less like basecamp. I added a confi
 
 If you set that to true, code has been modified to allow sign-up within a subdomain. That make it kind of like a google groups site, but using a subdomain.
 
-* modified:   Gemfile - file not really changed, but bundle update to 3.0.3 and devise 1.5
+* modified:   Gemfile - file not really changed, but bundle update to 3.0.3 and devise 1.1.5
 * modified:   app/controllers/application_controller.rb
 ** Some refactoring and name changes. Use cancan to control who can invite. Added helper can_sign_up? to control sign_up links
 * modified:   app/controllers/members_controller.rb

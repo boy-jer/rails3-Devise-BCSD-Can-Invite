@@ -12,7 +12,7 @@ class UsersController < ApplicationController
   end
   
   def valid
-    token_user = User.valid?(params)
+    token_user = User.valid_token?(params)
     if token_user
       sign_in(:user, token_user)
       flash[:notice] = "You have been logged in"

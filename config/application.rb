@@ -14,7 +14,13 @@ module DeviseBCSDCanInvite
 
     # Custom directories with classes and modules you want to be autoloadable.
      config.autoload_paths += %W(#{config.root}/lib)
-     config.allow_account_sign_up = false
+     
+    # Custome application configuration
+    # Set to true if you want to allow users to sign up to an account/subdomain versus being invited
+     config.allow_account_sign_up = true
+    # Set to false if you want redirected to sign_in page on authenticate_user! Leaving true redirects to account home with flash alert
+     config.authenticate_to_home = false
+     
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
     # config.plugins = [ :exception_notification, :ssl_requirement, :all ]

@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
   before_filter :set_mailer_url_options
 
   def can_sign_up?
-    Account::CAN_SIGN_UP
+    root_domain ? true :Account::CAN_SIGN_UP
   end
   
   def root_domain
@@ -38,6 +38,17 @@ class ApplicationController < ActionController::Base
     unless user_signed_in?
       redirect_to root_url, :alert => "You must be logged in to access that page - #{params[:controller]}"
       return false
+    end
+  end
+  
+  def authenticate_user!
+    if Rails.application.config.authenticate_to_home
+      unless user_signed_in?
+        redirect_to root_url, :alert => "You must be logged in to access that page - #{params[:controller]}"
+        return false
+      end
+    else
+      super
     end
   end
   
@@ -79,5 +90,25 @@ class ApplicationController < ActionController::Base
     end
     super
   end
+  
+  def sign_in_and_redirect(resource_or_scope, resource=nil)
+    scope = Devise::Mapping.find_scope!(resource_or_scope)
+    resource ||= resource_or_scope
+    sign_in(scope, resource) unless warden.user(scope) == resource
+    if check_account_id
+      redirect_to stored_location_for(scope) || after_sign_in_path_for(resource)
+    else
+      sign_out(current_user)
+      flash[:notice] = nil
+      flash[:alert] = I18n.t("devise.failure.invalid") 
+      redirect_to sign_in_path
+    end
+  end  
+
+  def check_account_id
+    current_user.account.id == current_account.id
+  end
+  
+  
   
 end

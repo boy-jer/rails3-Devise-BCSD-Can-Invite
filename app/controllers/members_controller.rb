@@ -3,7 +3,8 @@ class MembersController < ApplicationController
   #before_filter :authenticate_user!
   
   # :require_user does not redirect to the sign-in page, but just displays a message - demo purposes
-  before_filter :require_user
+  #before_filter :require_user
+  before_filter :authenticate_user!
   before_filter :new
   load_and_authorize_resource
   before_filter :check_account
