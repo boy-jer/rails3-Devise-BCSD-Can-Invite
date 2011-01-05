@@ -18,6 +18,7 @@ DeviseBCSDCanInvite::Application.routes.draw do
     match '/' => 'sites#index'
     match '/opps' => 'sites#opps'
   end
+  match '/opps' => 'home#opps'
   
   root :to => "home#index"
 

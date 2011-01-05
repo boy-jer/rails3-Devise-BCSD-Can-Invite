@@ -14,45 +14,109 @@ The initial basecamp like version was a fork of the above. "salex/Rails3-Subdoma
 
 While that version works, there were some business rules I wanted to implement that made it more like basecamp. To implement those rules, CanCan and Devise Invitable are used. Code was also stollen from links on the Devise wiki to implement several features, such as creating a login name.
 
-h3. Changes
+h3. There are many ways to skin a cat!
 
-2010-12-23 Gee, implementing new features broke some basics! That has never happened before has it? I have to learn how to write tests. Adding the ability to sign_up to a subdomain broke basic sign_up from the root domain. There was also an issue that if you used authenticate_user! instead of require_user and modified the url to a page that required login, and you used a user and password from another domain, it would log you in to the wrong subdomain! I've never liked stored_location_for or other forms of trying to store a redirect location in the session or someplace, just too may ways of screwing it up. But I added a configuration item that authenticate_user! will act as super (redirect to sign_in page) or redirect to the subdomain home page with alert. Pick your poison. Just hope I didn't screw that up. Think I fixed the basic sign_up, but just wanted to get something out there that worked better than what was out there.
+This, probably politically incorrect idiom, is way of saying there a many ways to define and use subdomains. I've decided to clean up some stuff in the readme and to define some of those ways and how they apply to this demo shell.
 
+My interpretation of Basecamp Like:
 
-2010-12-18 I've received a few comments and suggestion. Again my goal was to use this on a proposed project. Since then
-I have used devise on a few other projects and have learned a little. I've also found some errors and did a little refactoring.
+* When you sign-up at the root domain, you must provide a subdomain or account name.
+** If the account name is unique, you become the owner of that account
+* Know one else can sign up to that account
+* You can invite other users to access the account
+* If you login at the basecamp root domain, you are redirected to your account
+* Your session is restricted to your subdomain - you can't "visit" other accounts
 
-One major change is that my rules stated that sign-in was only valid from the domain root page. Once an account was created,
-new users would have to be invited - more or less like basecamp. I added a configuration to the application.rb file
+That was my original starting point, except the initial version didn't have the capability to login at the root domain and be redirected. I hacked my way through that, but then I kept getting suggestions and had my own ideas and problems with Devise.
+
+* What if the subdomain is kind of blog like and I don't mind other users joining (sign up instead of invite)
+* Devise is kind of set in its ways!
+** If you try to access a page requiring authentication, it wants to take you to a sign in page. I never really liked that approach and decided to just go to the subdomain root and display a flash message.
+** After you sign in, it wants to take you to the page you originally tried to access. Storing redirects is nice, unless you have someone mucking with the url and trying to break your supposedly well though out scheme!
+
+Fortunately you can override some of the defaults - but then some people like the defaults. Unfortunately, adding some of these features (and not knowing how to write tests) often breaks something else! I'd like to say that everything is perfect, but then I'm not a Rails expert. This describes the current version.
+
+h4. Configuration
+
+In config/application.rb there are two configuration options for this shell:
 
 <pre>
-	config.allow_account_sign_up = false
+# Custome application configuration
+  config.allow_account_sign_up = false
+   # Set to true if you want to allow users to sign up to an account/subdomain versus being invited
+  config.authenticate_to_home = true
+   # Set to false if you want redirected to sign_in page on authenticate_user! Leaving true redirects to account home with flash alert
+
 </pre>
 
-If you set that to true, code has been modified to allow sign-up within a subdomain. That make it kind of like a google groups site, but using a subdomain.
+h4. Helpers
 
-* modified:   Gemfile - file not really changed, but bundle update to 3.0.3 and devise 1.1.5
-* modified:   app/controllers/application_controller.rb
-** Some refactoring and name changes. Use cancan to control who can invite. Added helper can_sign_up? to control sign_up links
-* modified:   app/controllers/members_controller.rb
-** Some comments on why I had a helper require_user that is really the same as authenticate_user! 
-* modified:   app/helpers/application_helper.rb
-** added a flash helper
-* modified:   app/models/ability.rb
-** Control who can invite
-* modified:   app/models/account.rb
-** Added constant that can be called by user validations in the sign_up routines
-* modified:   app/models/user.rb
-** Validations modifed to allow sign_up at subdomain level. The next few file also refer to the sign_up change.
-* modified:   app/views/devise/menu/_registration_items.html.erb
-* modified:   app/views/devise/registrations/new.html.erb
-* modified:   app/views/layouts/application.html.erb
-* modified:   config/application.rb
-* modified:   db/seeds.rb
-** user3 and user4 would fail because account already exited. Change to save(false) scheme
+<pre>
+is_root_domain? 
+	# return true if there is no subdomain
+can_sign_up? 
+	# return true if config.allow_account_sign_up is set to true
+	# Used in conjection with root_domain? for root domain.
+current_account 
+	# If subdomain is present, returns the account, else nil
+is_account_resource?(account_id) 
+	# call in controller before_filter to make sure the resource belongs to the account
+	# used to prevent url modification to resources that are not owned by account.
+</pre>
 
+h4. Overrides/hooks 
 
-h3. The rules
+<pre>
+authenticate_user!
+	# An override to devise to redirect to custom page if configured to do so 
+	# config.authenticate_to_home = true
+authenticate_inviter!
+	# A hook to Devise_invitable that uses CanCan to see if a user is authorized 
+	# to invite another user.
+after_sign_in_path_for(resource_or_scope)
+	# Modified to redirect user to their account root if login is at root domain
+	# User is signed out of that domain and signed in to their domain using a token.
+sign_in_and_redirect(resource_or_scope, resource=nil)
+	# Handles case if user is visiting another subdomain and tries to sign in.
+	# Also handles the redirect on sign up, sending them to their account root.
+</pre>
+
+h4. Testing (Notes to me)
+
+* rake db:drop and then follow install instructions
+* set defaults
+** config.allow_account_sign_up = false
+** config.authenticate_to_home = true
+* root domain
+** sign up and login links visible
+** try to access /members  => authentication error
+** try to access /uses/invitation/new  => unauthorized error
+** try sign-up, new account, logs in a redirects to new account home
+** try login user1-please, logs in a redirects to  account home
+** try login user1-badpwd, form error
+* foo subdomain
+** only login link
+** /users/sign_up => error, sign up not permitted from subdomain
+** try to access /uses/invitation/new  => unauthorized error
+** try to access /members  => authentication error
+** try login user1-please, logs account home => members and invite user links
+** logout and login user2-please, logs in account home =>  invite user links
+** try to access /members  => authentication error
+** logout and login user4-please, logs in bar account home =>  not invite or member links
+* set defaults and restart
+** config.allow_account_sign_up = true
+** config.authenticate_to_home = false
+** logout bar subdomain -> should see sign_up link -> sign up should add new user to subdomain
+** logout and try to access /members  => authentication error redirect to login page
+** try login user4-please => error not authorized
+* root domain
+** try members -> login screen
+** try login user3-please -> redirects to root, no unauthorized flash
+** logout and login user1-please, logs in account home 
+** open members table and show member user1
+** modify url to try to show member 2 = not your resource error
+
+h3. The rules (and how they changed)
 
 * <del>You can only register or sign-up at the root domain.</del> Configurable
 ** <del>The application will generate an alert if sign-in is attempted from a subdomain</del> Configurable
@@ -61,7 +125,7 @@ h3. The rules
 * <del>New users must be invited by the site admin to register for that subdomain</del> Configurable
 * Login can be either by eMail and login, which is the email name if unique.
 * Login is unique across all subdomains
-* A user who tries to login to another subdomain will be rejected
+* <del>A user who tries to login to another subdomain will be rejected</del> Redirected to their account
 * The site admin can edit members, which is a model inherited from user
 ** Members link added to menubar if site admin.
 ** Site admin can set roles on the edit page.
@@ -104,28 +168,23 @@ Everyone knows that engineers can't write... I <span style="border-bottom: dotte
 Rails and Ruby has been a trip from someone who started with Fortran, Basic and 6502 assembler. I don't consider myself a novice, but certainly not an expert. I tried to solicit help in some areas, like is:
 
 <pre>
-  def after_sign_in_path_for(resource_or_scope)
-    scope = Devise::Mapping.find_scope!(resource_or_scope)
-    account_name = current_user.account.name
-    if current_account.nil? 
-      # logout of root domain and login by token to account
-      token =  Devise.friendly_token
-      current_user.loginable_token = token
-      current_user.save
-      sign_out(current_user)
-      flash[:notice] = nil
-      home_path = valid_user_url(token, :account => account_name)
-      return home_path 
-    else
-      if account_name != current_account.name 
-        # user not part of current_account
-        sign_out(current_user)
-        flash[:notice] = nil
-        flash[:alert] = "Sorry, invalid user or password for account"
-      end
-    end
-    super
-  end
+ def after_sign_in_path_for(resource_or_scope)
+   # Modified to redirect user to their account root if login is at root domain
+   # User is signed out of that domain and signed in to their domain using a token.
+   scope = Devise::Mapping.find_scope!(resource_or_scope)
+   account_name = current_user.account.name
+   if current_account.nil? 
+     # logout of root domain and login by token to account
+     token =  Devise.friendly_token
+     current_user.loginable_token = token
+     current_user.save
+     sign_out(current_user)
+     flash[:notice] = nil
+     home_path = valid_user_url(token, :account => account_name)
+     return home_path 
+   end
+   super
+ end
 </pre>
 
 the best way to redirect a sign-in from the root domain to a users subdomain. It works, but not sure if there are better ways.

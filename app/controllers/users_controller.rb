@@ -7,7 +7,7 @@ class UsersController < ApplicationController
   def show
     @user = User.find(params[:id])
     if !current_account.nil?
-      check_account_id(@user.account_id)
+      is_account_resource?(@user.account_id)
     end
   end
   

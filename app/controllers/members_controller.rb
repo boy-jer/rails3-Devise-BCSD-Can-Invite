@@ -2,11 +2,11 @@ class MembersController < ApplicationController
   #under normal conditions, use before_filter :authenticate_user!, but this is a demo so it has been replace
   #before_filter :authenticate_user!
   
-  # :require_user does not redirect to the sign-in page, but just displays a message - demo purposes
-  #before_filter :require_user
   before_filter :authenticate_user!
-  before_filter :new
   load_and_authorize_resource
+  
+  before_filter :new
+  
   before_filter :check_account
 
 
@@ -77,7 +77,7 @@ class MembersController < ApplicationController
   
   def check_account
     if @member
-      check_account_id(@member.account_id)
+      is_account_resource?(@member.account_id)
     end
   end
 end

@@ -19,7 +19,7 @@
 		</div>	
 		<div id="menubar">
 			<div>
-				<%if root_domain%>
+				<%if is_root_domain?%>
 					<%= link_to 'Home', root_path %>
 				<% else%>
 					<%= link_to 'Home', root_url(:account => false) %> |
