@@ -1,5 +1,8 @@
 h1. Rails3-Devise-BaseCampLike-Subdomains-With-CanCan-and-Invitable
 
+Note: The 3.1 version has not been fully tested. Several things changed in 3.1 (named url_for allows subdomain and host does not contain port number). There were other problems with changes to Devise and Devise invitable that seem to be worked around, but I've actually stopped using Devise and rolled my own using the approach on Railscast. I will try to verify the changes in Devise, but not right away.  *Steve*
+
+
 Use this project as a starting point for a Rails 3 application that uses basecamp-like subdomains and authentication. User management and authentication is implemented using "Devise":http://github.com/plataformatec/devise.
 
 Authorization is implemented using "CanCan":http://github.com/ryanb/cancan.
