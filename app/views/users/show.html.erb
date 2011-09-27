@@ -6,7 +6,9 @@
 <% account = @user.account %>
   <tr>
     <td><%= link_to account.name, account %></td>
-    <td><%= link_to "Visit #{root_url(:account => account.name)}", root_url(:account => account.name) %></td>
+  </tr>
+  <tr>
+    <td><%= link_to "Visit #{root_url(:account => account.name)} ", root_url(:account => account.name) %></td>
   </tr>
 </table>
 <br />

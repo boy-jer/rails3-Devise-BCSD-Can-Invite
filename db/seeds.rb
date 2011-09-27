@@ -16,11 +16,11 @@ puts 'New user created: ' << user2.name
 # skipping all filters with save(false) and setting required information
 user3 = User.new ({:name => 'Foo Second User', :account_name => "foo", :email => 'user3@test.com', :password => 'please',
  :password_confirmation => 'please', :account_id => 1, :roles => "inviter"})
-user3.save(false)
+user3.save(:validate => false)
 puts 'New user created: ' << user3.name
 user4 = User.new ({:name => 'Bar Second User', :account_name => "bar", :email => 'user4@test.com', :password => 'please',
  :password_confirmation => 'please', :account_id => 2})
-user4.save(false)
+user4.save(:validate => false)
 puts 'New user created: ' << user4.name
 
 # accounts creation removed because they are created automaticaly by user signup left only the display

@@ -19,14 +19,14 @@ class ApplicationController < ActionController::Base
   def current_account
     # If subdomain is present, returns the account, else nil
     if !is_root_domain?
-      current_account = Account.find_by_name(request.subdomains.first)
-      if current_account.nil?
+      @current_account ||= Account.find_by_name(request.subdomains.first)
+      if @current_account.nil?
         redirect_to root_url(:account => false, :alert => "Unknown Account/subdomain")
       end
     else 
-      current_account = nil
+      @current_account = nil
     end
-    return current_account
+    @current_account
   end      
   
   def is_account_resource?(account_id)
@@ -60,9 +60,7 @@ class ApplicationController < ActionController::Base
   def authenticate_inviter!
   	# A hook to Devise_invitable that uses CanCan to see if a user is authorized 
   	# to invite another user.
-    if can? :invite, User
-      super
-    else 
+    if cannot? :invite, User
       redirect_to "/opps", :alert => "Unauthorized action"
     end
   end
@@ -72,14 +70,14 @@ class ApplicationController < ActionController::Base
   	# User is signed out of that domain and signed in to their domain using a token.
     scope = Devise::Mapping.find_scope!(resource_or_scope)
     account_name = current_user.account.name
-    if current_account.nil? 
+    if current_account.nil? || (account_name != current_account.name)
       # logout of root domain and login by token to account
       token =  Devise.friendly_token
       current_user.loginable_token = token
       current_user.save
       sign_out(current_user)
       flash[:notice] = nil
-      home_path = valid_user_url(token, :account => account_name)
+      home_path = valid_user_url(token, :subdomain => account_name)
       return home_path 
     end
     super
@@ -87,7 +85,7 @@ class ApplicationController < ActionController::Base
   
   def sign_in_and_redirect(resource_or_scope, resource=nil)
     # Handles case if user is visiting another subdomain and tries to sign in.
-  	# Also handles the redirect on sign up, sending them to their account root.
+  	# Also handles the redirect on sign up, sending them to their account root.    
     scope = Devise::Mapping.find_scope!(resource_or_scope)
     resource ||= resource_or_scope
     sign_in(scope, resource) unless warden.user(scope) == resource
@@ -100,7 +98,7 @@ class ApplicationController < ActionController::Base
       current_user.save
       sign_out(current_user)
       flash[:notice] = nil
-      home_path = valid_user_url(token, :account => account_name)
+      home_path = valid_user_url(token, :subdomain => account_name)
       redirect_to home_path
     end
   end  
