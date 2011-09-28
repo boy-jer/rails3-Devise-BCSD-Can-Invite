@@ -45,7 +45,8 @@ class ApplicationController < ActionController::Base
   
   protected
 
-  def authenticate_user!
+  def authenticate_user!(opt={})
+    logger.info "hugggggggggggggg #{opt}"
     # An override to devise to redirect to custom page if config 
     if Rails.application.config.authenticate_to_home
       unless user_signed_in?
